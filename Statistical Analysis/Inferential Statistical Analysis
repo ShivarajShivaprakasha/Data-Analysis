@@ -1,0 +1,109 @@
+# for basic operations
+import numpy as np 
+import pandas as pd 
+import statsmodels.api as sm
+# for data visualizations
+import seaborn as sns
+import matplotlib.pyplot as plt
+# reading the data
+data = pd.read_csv('data/house prices/house_price.csv')
+
+data.shape
+
+pd.set_option('max_columns',82)
+data.head()
+
+data.columns
+
+data.info()
+
+data.describe()
+
+sns.distplot(data['SalePrice'])
+plt.show()
+
+print(data['SalePrice'].min())
+print(data['SalePrice'].max())
+print(data['SalePrice'].mean())
+print(data['SalePrice'].median())
+print(data['SalePrice'].mode())
+print(data['SalePrice'].std())
+print(data['SalePrice'].var())
+print(data['SalePrice'].kurt())
+print(data['SalePrice'].skew())
+
+np.random.seed(23)
+sampleprice = np.random.choice(a=data['SalePrice'],size=500)
+sampleprice.mean()
+
+data.Neighborhood.value_counts()
+
+from statsmodels.stats.weightstats import ztest
+zval , pval = ztest(x1 = data[data['Neighborhood']=='Edwards']['SalePrice'], value=data['SalePrice'].mean())
+print(zval ,'   : ', pval)
+
+zval , pval = ztest(x1 = data[data['Neighborhood']=='OldTown']['SalePrice'], value=data['SalePrice'].mean())
+print(zval ,'   : ', pval)
+
+mean_ =data[data['Neighborhood']=='Edwards']['SalePrice'].mean()
+stdev =data[data['Neighborhood']=='Edwards']['SalePrice'].std()
+from scipy import stats
+z_sc=(180000-mean_)/stdev
+stats.norm.cdf(z_sc)
+
+
+stats.t.interval(.90,len(data[data['Neighborhood']=='Edwards']['SalePrice']),mean_, scale=stdev)
+
+mean_ =data[data['Neighborhood']=='SawyerW']['SalePrice'].mean()
+stdev =data[data['Neighborhood']=='SawyerW']['SalePrice'].std()
+from scipy import stats
+z_sc=(280000-mean_)/stdev
+stats.norm.cdf(z_sc)
+
+stats.t.interval(.90,len(data[data['Neighborhood']=='SawyerW']['SalePrice']),mean_, scale=stdev)
+
+data[data['Neighborhood']=='SawyerW']['SalePrice'].max()
+
+a=data[data['Neighborhood']=='SawyerW']['SalePrice']
+b=data[data['Neighborhood']=='Edwards']['SalePrice']
+stats.ttest_ind(a,b,axis=0,equal_var=True)
+
+# 1 sample t test.
+tscore, pvalue = stats.ttest_1samp(data[data['Neighborhood']=='CollgCr']['SalePrice'].sample(50), popmean=data['SalePrice'].mean())
+print(tscore, ' : ',pvalue)
+
+data['YearBuilt'].plot()
+
+a= data[data['YearBuilt']<=1990]['SalePrice']
+b=data[data['YearBuilt']>1990]['SalePrice']
+stats.ttest_ind(a,b,axis=0,equal_var=True)
+
+def compute_freq_chi2(x,y):
+    freqtab = pd.crosstab(x,y)
+    print("Frequency table")
+    print("============================")
+    print(freqtab)
+    print("============================")
+    chi2, pval, dof, expected = stats.chi2_contingency(freqtab)
+    print("ChiSquare test statistic: ",chi2)
+    print("p-value: ",pval)
+    return
+
+
+price = pd.qcut(data['SalePrice'], 3, labels = ['High', 'Medium', 'Low'])
+compute_freq_chi2(data.LandContour, price)
+
+print('\n -------------------- describe ---------------------\n')
+print(data.groupby('LandContour')['SalePrice'].describe().T)
+    
+    
+#box_plot(category_cols,independent_col,dependent_col)
+sns.boxplot(x='LandContour', y='SalePrice', data = data)
+print('\n\n -------------------- One way anova ---------------------\n')
+
+One way ANOVA Test
+stats.f_oneway(data['SalePrice'][data['LandContour'] == 'Lvl'],data['SalePrice'][data['LandContour'] == 'Bnk'],data['SalePrice'][data['LandContour'] == 'Low'],data['SalePrice'][data['LandContour'] == 'HLS'])
+
+One way ANOVA Test for sample size of -35
+stats.f_oneway(data['SalePrice'][data['LandContour'] == 'Lvl'].sample(35),data['SalePrice'][data['LandContour'] == 'Bnk'].sample(35),data['SalePrice'][data['LandContour'] == 'Low'].sample(35),data['SalePrice'][data['LandContour'] == 'HLS'].sample(35))
+
